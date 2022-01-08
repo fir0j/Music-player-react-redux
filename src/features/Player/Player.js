@@ -18,7 +18,11 @@ import {
   setLoop,
 } from "./playerSlice";
 import { STabs, STabList, STab, STabPanel } from "../../components/Tabs";
-import { ControlButton, UploadButton } from "../../components/Button";
+import {
+  ControlButton,
+  PlayButton,
+  UploadButton,
+} from "../../components/Button";
 import ListItem from "../../components/ListItem";
 import Search from "../../components/Search";
 import "../Player/style.css";
@@ -122,12 +126,7 @@ function Player() {
     <UploadButton>
       <label
         style={{
-          display: "inline-block",
-          height: "100%",
-          width: "100%",
-          borderRadius: "50%",
           cursor: "pointer",
-          textAlign: "center",
         }}
         htmlFor="file-upload"
       >
@@ -159,40 +158,24 @@ function Player() {
         }}
       >
         <input
+          className="play-button"
           style={{
             borderRadius: "4px",
             display: "inline-block",
-            color: "grey",
+            color: "rgb(52, 43, 12)",
             fontSize: "1em",
-            border: "1px solid",
             width: "100%",
             padding: "4px",
-            paddingLeft: "4px",
-            paddingRight: "48px",
+            paddingLeft: "8px",
+            paddingRight: "52px",
             maxWidth: "1080px",
-            // outline: "1px solid red",
+            minHeight: "40px",
+            backgroundColor: "rgb(254, 249, 228)",
           }}
           placeholder="e.g https://www.youtube.com/watch?v=g8LEktKv9hs"
           onChange={(e) => (urlRef.current = e.target.value)}
         />
-        <button
-          style={{
-            height: "32px",
-            display: "inline-block",
-            margin: 0,
-            padding: 8,
-            borderRadius: 0,
-            borderTopRightRadius: "4px",
-            borderBottomRightRadius: "4px",
-            backgroundColor: "black",
-            color: "yellow",
-            cursor: "pointer",
-            position: "absolute",
-            marginLeft: -46,
-          }}
-        >
-          Play
-        </button>
+        <PlayButton>Play</PlayButton>
       </form>
     </div>
   );
@@ -200,26 +183,28 @@ function Player() {
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <div
+        className="second-inner-wrapper"
         style={{
           width: "100%",
           maxWidth: "1080px",
           backgroundColor: "rgb(62, 57, 36)",
-          padding: "20px 40px 20px 40px",
           borderRadius: "4px",
+          boxShadow:
+            "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
         }}
       >
         <div
           style={{
-            display: "flex",
+            display: "block",
             justifyContent: "space-around",
             alignContent: "center",
             backgroundColor: "rgb(51, 45, 25)",
-            padding: "16px 8px",
-            marginBottom: "8px",
             borderRadius: "4px",
+            padding: "8px 8px",
+            paddingBottom: "16px",
+            marginBottom: "8px",
           }}
         >
-          <Search />
           <div
             style={{
               color: "rgb(252, 228, 148)",
@@ -230,8 +215,10 @@ function Player() {
           >
             Smart Media Player
           </div>
+          <Search />
         </div>
         <div
+          className="player-wrapper"
           style={{
             border: "2px solid ",
             borderBottom: "30px solid ",
@@ -240,7 +227,6 @@ function Player() {
             borderColor: "rgb(51, 45, 25)",
             position: "relative",
             width: "100%",
-            minHeight: "600px",
           }}
           onMouseOver={() => {
             if (!hovering) dispatch(setHovering(true));
@@ -263,20 +249,7 @@ function Player() {
               color: "rgb(252, 228, 148)",
             }}
           >
-            <ControlButton
-              style={{
-                border: "1px solid rgb(252, 228, 148)",
-                color: "rgb(252, 228, 148)",
-                background: "none",
-                fontSize: "1.5rem",
-                borderRadius: "4px",
-                cursor: "pointer",
-                padding: "4px 8px",
-                fontFamily: "cursive",
-                fontWeight: "bold",
-              }}
-              onClick={(e) => handleNext(e, -1)}
-            >
+            <ControlButton onClick={(e) => handleNext(e, -1)}>
               Prev
             </ControlButton>
             <ControlButton className="control-button" onClick={handleLoop}>

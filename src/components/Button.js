@@ -4,8 +4,8 @@ const UploadButton = styled.button`
   display: inline-block;
   color: smokewhite;
   font-size: 2em;
-  margin: $({props}=> props.margin || 2em);
-  padding: $({props}) => props.padding || 0.5em 2em;
+  // margin: $({props}=> props.margin || 2em);
+  // padding: $({props}) => props.padding || 0.5em 2em;
   border: 4px solid rgb(62, 57, 36);
   border-radius: 50%;
   position: absolute;
@@ -26,6 +26,27 @@ const ControlButton = styled.button`
   padding: 4px 8px;
   font-family: cursive;
   font-weight: bold;
+  z-index: 1;
+  @media screen and (max-width: 480px) {
+    padding: 2px 4px;
+    font-size: 1rem;
+  }
 `;
 
-export { UploadButton, ControlButton };
+const PlayButton = styled.button`
+  min-height: 40px;
+  min-width: 50px;
+  display: inline-block;
+  margin: 0px;
+  padding: 8px;
+  border-radius: 0px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  background-color: rgb(51, 45, 25);
+  color: rgb(252, 228, 148);
+  cursor: pointer;
+  position: absolute;
+  margin-left: -50px;
+`;
+
+export { UploadButton, ControlButton, PlayButton };

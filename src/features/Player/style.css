@@ -1,3 +1,30 @@
+.player-wrapper {
+  position: relative;
+  padding-top: 56.25%; /* Player ratio: 100 / (1280 / 720) */
+}
+
+.react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .react-player > div {
   position: absolute;
+}
+
+.second-inner-wrapper {
+  padding: 20px 40px 20px 40px;
+}
+
+.play-button:focus {
+  border: 1px solid rgb(52, 43, 12);
+  outline: 1px solid rgb(252, 228, 148);
+}
+
+@media screen and (max-width: 480px) {
+  .second-inner-wrapper {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 }

@@ -4,11 +4,15 @@ import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
 const STabs = styled(Tabs)`
   font-family: BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 18px;
+  @media screen and (max-width: 480px) {
+    font-size: 14px;
+  }
 `;
 
 const STabList = styled(TabList)`
   list-style-type: none;
-  margin: 0px;
+  margin-top: 16px;
+  padding: 0px;
   display: flex;
   justify-content: center;
 `;
@@ -26,6 +30,10 @@ const STab = styled(Tab)`
   &.is-selected {
     z-index: 10;
     background: rgba(0, 0, 0, 0.4);
+  }
+
+  @media screen and (max-width: 480px) {
+    min-width: 80px;
   }
 `;
 STab.tabsRole = "Tab";
