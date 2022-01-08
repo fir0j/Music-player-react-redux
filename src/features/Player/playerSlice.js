@@ -5,6 +5,8 @@ const initialState = {
   trackIndex: 0,
   localfiles: null,
   filesInfo: [],
+  hovering: false,
+  loop: false,
 };
 
 export const playerSlice = createSlice({
@@ -33,6 +35,12 @@ export const playerSlice = createSlice({
         state.trackIndex + action.payload < state.localfiles.length;
       if (isNextAllowed) state.trackIndex = state.trackIndex + action.payload;
     },
+    setHovering: (state, action) => {
+      state.hovering = action.payload;
+    },
+    setLoop: (state, action) => {
+      state.loop = action.payload;
+    },
   },
 });
 
@@ -45,6 +53,8 @@ export const {
   setLocalfiles,
   setFilesInfo,
   setTrackIndex,
+  setHovering,
+  setLoop,
 } = playerSlice.actions;
 
 // exporting our callbacks for useSelector, is used to access redux store from anywhere in app
@@ -53,5 +63,7 @@ export const selectPlaying = (state) => state.player.playing;
 export const selectLocalfiles = (state) => state.player.localfiles;
 export const selectFilesInfo = (state) => state.player.filesInfo;
 export const selectTrackIndex = (state) => state.player.trackIndex;
+export const selectHovering = (state) => state.player.hovering;
+export const selectLoop = (state) => state.player.loop;
 
 export default playerSlice.reducer;

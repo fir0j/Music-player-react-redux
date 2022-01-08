@@ -16,19 +16,16 @@ const UploadButton = styled.button`
   width: 50px;
 `;
 
-const VideoButton = styled(UploadButton)``;
-const MusicButton = styled(UploadButton)``;
-const OnlineButton = styled(UploadButton)``;
+const ControlButton = styled.button`
+  background: none;
+  border: 1px solid rgb(252, 228, 148);
+  color: rgb(252, 228, 148);
+  font-size: 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: cursive;
+  font-weight: bold;
+`;
 
-// const DynamicButton = styled.button`
-//   display: inline-block;
-//   color: ${(props) => props.color || "palevioletred"};
-//   font-size: 1em;
-//   margin: 1em;
-//   padding: 0.25em 1em;
-//   border: 2px solid palevioletred;
-//   border-radius: 3px;
-//   display: block;
-// `;
-
-export { UploadButton, MusicButton, VideoButton, OnlineButton };
+export { UploadButton, ControlButton };
