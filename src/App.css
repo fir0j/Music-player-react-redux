@@ -1,3 +1,17 @@
+:root {
+  --paper: "rgb(254, 249, 228)";
+  --yellow: "rgb(252, 228, 148)";
+  --gray: "rgb(62, 57, 36)";
+  --dark: "rgb(52, 43, 12)";
+  --text: "rgb(201, 201, 193)";
+  --black: "rgb(51, 45, 25)";
+}
+
+html,
+body {
+  background-color: "green";
+}
+
 .App {
   text-align: center;
 }

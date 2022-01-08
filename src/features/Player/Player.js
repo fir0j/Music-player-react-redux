@@ -10,6 +10,7 @@ import {
   setUrl,
   setTrackIndex,
 } from "./playerSlice";
+import "../Player/react-player.css";
 
 function Player() {
   const url = useSelector(selectUrl);
@@ -18,6 +19,7 @@ function Player() {
   const localfiles = useSelector(selectLocalfiles);
   const dispatch = useDispatch();
   console.log("playing Track", trackIndex);
+  console.log("url", url);
 
   const startPlaying = () => {
     console.log("startedPlaying");
@@ -36,18 +38,23 @@ function Player() {
     }
   };
 
+  const handleUrl = () => {
+    if (!url) return null;
+    if (typeof url === "object") return url.url;
+    if (typeof url === "string") return url;
+  };
+
   return (
-    <div style={{ width: "56.25%" }}>
-      <ReactPlayer
-        url={url}
-        width="100%"
-        height="100%"
-        controls
-        playing={playing}
-        onEnded={(e) => playNext(e, 1)}
-        onStart={startPlaying}
-      />
-    </div>
+    <ReactPlayer
+      className="react-player"
+      url={handleUrl()}
+      width="100%"
+      height="100%"
+      controls
+      playing={playing}
+      onEnded={(e) => playNext(e, 1)}
+      onStart={startPlaying}
+    />
   );
 }
 
