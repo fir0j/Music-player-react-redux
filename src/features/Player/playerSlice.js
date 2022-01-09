@@ -43,36 +43,43 @@ export const playerSlice = createSlice({
     },
     setPlaylist: (state, action) => {
       // expecting action.payload = {name:'Favourites',id:'id1'}
-      if (state.playlist.length) {
-        state.playlist.forEach((item) => {
-          console.log(
-            "item.name === action.payload.name",
-            item.name === action.payload.name
-          );
-          if (item.name === action.payload.name) {
-            // adding to existing playlist
-            item.list.push(action.payload.id);
-          } else {
-            // if new playlist
-            state.playlist.push({
-              name: action.payload.name,
-              list: [action.payload.id],
-            });
-          }
+
+      // creating first playlist
+      if (!state.playlist.length) {
+        state.playlist.push({
+          name: action.payload.name,
+          list: [action.payload.id],
         });
         return;
       }
-      // if no playlist exists
-      state.playlist.push({
-        name: action.payload.name,
-        list: [action.payload.id],
-      });
+
+      // if some playlist already exists
+      if (state.playlist.length) {
+        const booleanResults = state.playlist.map((item) => {
+          if (item.name === action.payload.name) {
+            // adding to existing playlist
+            item.list.push(action.payload.id);
+            return true;
+          }
+          return false;
+        });
+        // if new playlist
+        if (!booleanResults.includes(true)) {
+          state.playlist.push({
+            name: action.payload.name,
+            list: [action.payload.id],
+          });
+        }
+      }
     },
     removeFromPlaylist: (state, action) => {
       state.playlist.forEach((el) => {
-        if (el.name === action.payload.name) {
-          // pop item.id from the list
-          let newList = el.list.filter((item) => item.id !== action.payload.id);
+        if (el.name === action.payload.playlistName) {
+          // remove item.id from the list
+          let newList = el.list.filter(
+            (id) => id !== action.payload.playlistItemId
+          );
+          console.log("newlist is", newList);
           state.playlist = { ...state.playlist, list: newList };
         }
       });
@@ -103,6 +110,7 @@ export const {
   setModalStatus,
   setItemClicked,
   setActivePlaylist,
+  removeFromPlaylist,
 } = playerSlice.actions;
 
 // exporting our callbacks for useSelector, is used to access redux store from anywhere in app

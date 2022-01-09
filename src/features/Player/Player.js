@@ -22,6 +22,7 @@ import {
   setModalStatus,
   setItemClicked,
   setActivePlaylist,
+  removeFromPlaylist,
 } from "./playerSlice";
 import { STabs, STabList, STab, STabPanel } from "../../components/Tabs";
 import {
@@ -63,6 +64,8 @@ function Player() {
   const dispatch = useDispatch();
   const urlRef = useRef("");
   const modalRef = useRef("");
+  const audioFormats = ["audio/mpeg"];
+  const videoFormats = ["video/mp4"];
 
   function openModal() {
     dispatch(setModalStatus(true));
@@ -71,89 +74,6 @@ function Player() {
   function closeModal() {
     dispatch(setModalStatus(false));
   }
-  // accordion start
-  const [currentAccordion, setCurrentAccordion] = useState(0);
-  const [bodyHeight, setBodyHeight] = useState(0);
-
-  const item0 = useRef(null);
-  const item1 = useRef(null);
-  const item2 = useRef(null);
-  const item3 = useRef(null);
-  const item4 = useRef(null);
-  const item5 = useRef(null);
-
-  const refs = [item0, item1, item2, item3, item4, item5];
-  // Accordion
-  console.log("activeplaylist", activePlaylist);
-  const AccordionItems = ({
-    accordionContent,
-    refs,
-    currentAccordion,
-    setCurrentAccordion,
-    setBodyHeight,
-    bodyHeight,
-  }) =>
-    accordionContent.map((item, i) => (
-      <AccordionItem key={`accordion-item-${i}`}>
-        <AccordionTitle
-          onClick={() => {
-            if (currentAccordion === i) {
-              setCurrentAccordion(null);
-              return;
-            }
-            setCurrentAccordion(i);
-            setBodyHeight(refs[i].current.clientHeight);
-          }}
-        >
-          {item.name}
-        </AccordionTitle>
-
-        <AccordionBody active={currentAccordion === i} bodyHeight={bodyHeight}>
-          <AccordionContent ref={refs[i]}>
-            {files.map(
-              (file) =>
-                item.list.includes(file.id) && (
-                  <ListItem
-                    style={{ marginTop: "8px" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playMe(e, file);
-                    }}
-                  >
-                    <button
-                      style={{
-                        display: "inline-block",
-                        // marginLeft: "30px",
-                        marginRight: "8px",
-                        background: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        verticalAlign: "middle",
-                        borderColor: "rgb(252, 228, 148)",
-                      }}
-                    >
-                      <RemoveFromPlaylistIcon
-                        onClick={(e) => {
-                          console.log("active item", item);
-                          e.stopPropagation();
-                          handleRemoveFromPlaylist(item);
-                        }}
-                        fill={
-                          itemClicked.id === item.id
-                            ? "rgb(62, 57, 36)"
-                            : "rgb(252, 228, 148)"
-                        }
-                      />
-                    </button>
-                    {file.name}
-                  </ListItem>
-                )
-            )}
-          </AccordionContent>
-        </AccordionBody>
-      </AccordionItem>
-    ));
-  //accordion end
 
   const startPlaying = () => {
     dispatch(setPlaying(true));
@@ -220,13 +140,95 @@ function Player() {
     dispatch(setModalStatus(false));
   };
 
-  const handleRemoveFromPlaylist = (item) => {
-    dispatch(setActivePlaylist(item));
-    //
+  const handleRemoveFromPlaylist = (playlistName, playlistItemId) => {
+    console.log(playlistName, playlistItemId);
+    dispatch(removeFromPlaylist({ playlistName, playlistItemId }));
   };
+  console.log("playlist", playlist);
 
-  let audioFormats = ["audio/mpeg"];
-  let videoFormats = ["video/mp4"];
+  // accordion start
+  const [currentAccordion, setCurrentAccordion] = useState(0);
+  const [bodyHeight, setBodyHeight] = useState(0);
+
+  const item0 = useRef(null);
+  const item1 = useRef(null);
+  const item2 = useRef(null);
+  const item3 = useRef(null);
+  const item4 = useRef(null);
+  const item5 = useRef(null);
+
+  const refs = [item0, item1, item2, item3, item4, item5];
+  // Accordion
+  const AccordionItems = ({
+    accordionContent,
+    refs,
+    currentAccordion,
+    setCurrentAccordion,
+    setBodyHeight,
+    bodyHeight,
+  }) =>
+    accordionContent.map((item, i) => (
+      <AccordionItem key={`accordion-item-${Date.now()}}${item.name}`}>
+        <AccordionTitle
+          onClick={() => {
+            if (currentAccordion === i) {
+              setCurrentAccordion(null);
+              return;
+            }
+            setCurrentAccordion(i);
+            setBodyHeight(refs[i].current.clientHeight);
+          }}
+        >
+          {item.name}
+        </AccordionTitle>
+
+        <AccordionBody active={currentAccordion === i} bodyHeight={bodyHeight}>
+          <AccordionContent ref={refs[i]}>
+            {files.map(
+              (file, i) =>
+                item.list.includes(file.id) && (
+                  <ListItem
+                    key={`${file.id}${i}`}
+                    style={{ marginTop: "8px" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playMe(e, file);
+                    }}
+                  >
+                    <button
+                      style={{
+                        display: "inline-block",
+                        // marginLeft: "30px",
+                        marginRight: "8px",
+                        background: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        verticalAlign: "middle",
+                        borderColor: "rgb(252, 228, 148)",
+                      }}
+                    >
+                      <RemoveFromPlaylistIcon
+                        onClick={(e) => {
+                          console.log("active item", item);
+                          e.stopPropagation();
+                          handleRemoveFromPlaylist(item.name, file.id);
+                        }}
+                        fill={
+                          itemClicked.id === item.id
+                            ? "rgb(62, 57, 36)"
+                            : "rgb(252, 228, 148)"
+                        }
+                      />
+                    </button>
+                    {file.name}
+                  </ListItem>
+                )
+            )}
+          </AccordionContent>
+        </AccordionBody>
+      </AccordionItem>
+    ));
+  //accordion end
 
   const videosList = useMemo(
     () =>
