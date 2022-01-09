@@ -80,7 +80,7 @@ export const playerSlice = createSlice({
             (id) => id !== action.payload.playlistItemId
           );
           console.log("newlist is", newList);
-          state.playlist = { ...state.playlist, list: newList };
+          el.list = newList;
         }
       });
     },

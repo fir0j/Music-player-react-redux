@@ -11,7 +11,6 @@ import {
   selectPlaylist,
   selectModalStatus,
   selectItemClicked,
-  selectActivePlaylist,
   setPlaying,
   setUrl,
   setTrackIndex,
@@ -47,6 +46,7 @@ import {
 // import AddToPlaylistIcon from "../Player/icons/add-playlist.svg";
 import { ReactComponent as AddToPlaylistIcon } from "../Player/icons/add-playlist.svg";
 import { ReactComponent as RemoveFromPlaylistIcon } from "../Player/icons/remove-playlist.svg";
+import { ReactComponent as ArrowDownIcon } from "../Player/icons/arrow-down.svg";
 import Modal from "react-modal";
 Modal.setAppElement("#root");
 
@@ -60,7 +60,6 @@ function Player() {
   const playlist = useSelector(selectPlaylist);
   const modalStatus = useSelector(selectModalStatus);
   const itemClicked = useSelector(selectItemClicked);
-  const activePlaylist = useSelector(selectActivePlaylist);
   const dispatch = useDispatch();
   const urlRef = useRef("");
   const modalRef = useRef("");
@@ -180,6 +179,16 @@ function Player() {
           }}
         >
           {item.name}
+          <ArrowDownIcon
+            style={{ marginLeft: "8px", verticalAlign: "middle" }}
+            height="20px"
+            width="20px"
+            fill={
+              itemClicked.id === item.id
+                ? "rgb(62, 57, 36)"
+                : "rgb(252, 228, 148)"
+            }
+          />
         </AccordionTitle>
 
         <AccordionBody active={currentAccordion === i} bodyHeight={bodyHeight}>
