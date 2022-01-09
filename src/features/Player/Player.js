@@ -1,21 +1,25 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import ReactPlayer from "react-player";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectUrl,
   selectPlaying,
-  selectLocalfiles,
   selectTrackIndex,
-  selectFilesInfo,
+  selectFiles,
   selectHovering,
   selectLoop,
+  selectPlaylist,
+  selectModalStatus,
+  selectItemClicked,
   setPlaying,
   setUrl,
   setTrackIndex,
-  setFilesInfo,
-  setLocalfiles,
+  setFiles,
   setHovering,
   setLoop,
+  setPlaylist,
+  setModalStatus,
+  setItemClicked,
 } from "./playerSlice";
 import { STabs, STabList, STab, STabPanel } from "../../components/Tabs";
 import {
@@ -37,18 +41,32 @@ import {
   AccordionBody,
   AccordionContent,
 } from "../../components/Accordion";
+// import AddToPlaylistIcon from "../Player/icons/add-playlist.svg";
+import { ReactComponent as AddToPlaylistIcon } from "../Player/icons/add-playlist.svg";
+import Modal from "react-modal";
+Modal.setAppElement("#root");
 
 function Player() {
   const url = useSelector(selectUrl);
   const trackIndex = useSelector(selectTrackIndex);
   const playing = useSelector(selectPlaying);
-  const localfiles = useSelector(selectLocalfiles);
-  const filesInfo = useSelector(selectFilesInfo);
+  const files = useSelector(selectFiles);
   const hovering = useSelector(selectHovering);
   const loop = useSelector(selectLoop);
+  const playlist = useSelector(selectPlaylist);
+  const modalStatus = useSelector(selectModalStatus);
+  const itemClicked = useSelector(selectItemClicked);
   const dispatch = useDispatch();
   const urlRef = useRef("");
+  const modalRef = useRef("");
 
+  function openModal() {
+    dispatch(setModalStatus(true));
+  }
+
+  function closeModal() {
+    dispatch(setModalStatus(false));
+  }
   // accordion start
   const [currentAccordion, setCurrentAccordion] = useState(0);
   const [bodyHeight, setBodyHeight] = useState(0);
@@ -62,37 +80,6 @@ function Player() {
 
   const refs = [item0, item1, item2, item3, item4, item5];
   // Accordion
-  const sampleAccordionData = [
-    {
-      title: "Item 1",
-      content:
-        "Lorem ipsum dolor amet gastropub church-key gentrify actually tacos. Vegan taxidermy freegan before they sold out kickstarter copper mug iceland selvage blog prism. 8-bit vice drinking vinegar stumptown locavore. Microdosing unicorn typewriter sartorial cornhole. Man bun venmo cronut wolf shaman offal truffaut. Chillwave vinyl pug distillery adaptogen man bun tofu retro hammock kogi tbh jean shorts organic. Craft beer vinyl etsy, portland microdosing chicharrones lumbersexual crucifix cronut gentrify four loko tousled fingerstache.",
-    },
-    {
-      title: "Item 2",
-      content:
-        "Slow-carb knausgaard health goth kombucha tousled four loko. Messenger bag cronut +1, four loko williamsburg you probably haven't heard of them bicycle rights taiyaki ramps squid vaporware. Green juice typewriter master cleanse distillery viral wayfarers asymmetrical quinoa health goth semiotics succulents kinfolk pork belly shaman. Cronut salvia farm-to-table kickstarter shaman cloud bread echo park.",
-    },
-    {
-      title: "Item 3",
-      content:
-        "Health goth humblebrag live-edge meggings pork belly actually ugh kombucha banh mi plaid etsy waistcoat. Hammock celiac crucifix tousled, dreamcatcher tbh truffaut direct trade cliche synth hot chicken palo santo pork belly man bun retro. Art party +1 live-edge occupy iceland selfies beard fanny pack godard 90's messenger bag. Bushwick irony umami woke. Kale chips raw denim austin, food truck flexitarian 90's deep v. Locavore green juice cold-pressed hexagon copper mug vegan sriracha man bun la croix photo booth forage. Succulents migas irony hella mumblecore keytar waistcoat aesthetic cornhole shabby chic tumblr semiotics readymade.",
-    },
-    {
-      title: "Item 4",
-      content:
-        "Tbh next level subway tile ennui cloud bread. Master cleanse vaporware food truck, authentic distillery meggings ugh activated charcoal iceland gastropub fam. Raw denim direct trade pinterest keytar fam echo park wolf four dollar toast glossier kitsch taiyaki 8-bit austin. Brunch pinterest raw denim banh mi, bushwick organic artisan synth poutine man bun scenester. Occupy chartreuse food truck banh mi affogato shaman.",
-    },
-    {
-      title: "Item 5",
-      content:
-        "Aesthetic tofu dreamcatcher lumbersexual jianbing poke PBR&B kogi heirloom. Sartorial artisan synth tacos vegan bushwick, lomo thundercats VHS disrupt bespoke scenester. Copper mug taiyaki occupy, coloring book drinking vinegar taxidermy direct trade intelligentsia quinoa raw denim succulents. Dreamcatcher copper mug fanny pack yuccie art party hoodie, ugh portland.",
-    },
-    {
-      title: "Item 6",
-      content: "Oh. You need a little dummy text for your mockup? How quaint.",
-    },
-  ];
 
   const AccordionItems = ({
     accordionContent,
@@ -102,7 +89,7 @@ function Player() {
     setBodyHeight,
     bodyHeight,
   }) =>
-    accordionContent.map(({ title, content }, i) => (
+    accordionContent.map((item, i) => (
       <AccordionItem key={`accordion-item-${i}`}>
         <AccordionTitle
           onClick={() => {
@@ -114,12 +101,22 @@ function Player() {
             setBodyHeight(refs[i].current.clientHeight);
           }}
         >
-          {title}
+          {item.name}
         </AccordionTitle>
 
         <AccordionBody active={currentAccordion === i} bodyHeight={bodyHeight}>
           <AccordionContent ref={refs[i]}>
-            <ListItem>{content}</ListItem>
+            {files.map(
+              (file) =>
+                item.list.includes(file.id) && (
+                  <ListItem
+                    style={{ marginTop: "8px" }}
+                    onClick={(e) => playMe(e, file)}
+                  >
+                    {file.name}
+                  </ListItem>
+                )
+            )}
           </AccordionContent>
         </AccordionBody>
       </AccordionItem>
@@ -130,14 +127,15 @@ function Player() {
     dispatch(setPlaying(true));
   };
 
+  // onPlayEnded or onManualNext
   const handleNext = (e, nextBy) => {
     dispatch(setPlaying(false));
-    console.log(trackIndex, nextBy, localfiles.length);
-    let isNextAllowed = trackIndex + nextBy < localfiles.length;
+    console.log(trackIndex, nextBy, files.length);
+    let isNextAllowed = trackIndex + nextBy < files.length;
     if (isNextAllowed) {
       dispatch(setTrackIndex(nextBy));
       // since above dispatched is not reflected yet, nextTrack will be trackIndex+nextBy
-      dispatch(setUrl(localfiles[trackIndex + nextBy]));
+      dispatch(setUrl(files[trackIndex + nextBy]));
       dispatch(setPlaying(true));
     }
   };
@@ -152,30 +150,25 @@ function Player() {
 
   const handleMediaInput = (event) => {
     if (event.target.files.length === 0) return;
-    let filesInfo = [];
+
     let files = Array.from(event.target.files).map((item, i) => {
-      filesInfo.push({
+      return {
         id: `${item.name}${item.size}${i}`,
         name: item.name,
         type: item.type,
         size: item.size,
-      });
-
-      return {
-        id: `${item.name}${item.size}${i}`,
         url: URL.createObjectURL(item),
       };
     });
 
-    dispatch(setFilesInfo(filesInfo));
-    dispatch(setLocalfiles(files));
+    dispatch(setFiles(files));
     dispatch(setUrl(files[0]));
   };
 
   const playMe = (e, item) => {
-    let itemWithUrl = localfiles.filter((el) => el.id === item.id)[0];
+    dispatch(setItemClicked(item));
     dispatch(setPlaying(false));
-    dispatch(setUrl(itemWithUrl));
+    dispatch(setUrl(item));
     dispatch(setPlaying(true));
   };
 
@@ -186,29 +179,208 @@ function Player() {
     dispatch(setPlaying(true));
   };
 
+  const handleAddToPlaylist = (e) => {
+    e.preventDefault();
+    // saving memory at expense of compute and time.
+    let playlistItem = { name: modalRef.current, id: itemClicked.id };
+    dispatch(setPlaylist(playlistItem));
+  };
+
   let audioFormats = ["audio/mpeg"];
   let videoFormats = ["video/mp4"];
-  const videosList =
-    filesInfo &&
-    filesInfo
-      .filter((list) => videoFormats.includes(list.type))
-      .map((item, i) => (
-        <ListItem key={item.name} onClick={(e) => playMe(e, item)}>
-          <span>{`${i + 1}. `}</span>
-          {item.name}
-        </ListItem>
-      ));
 
-  const musicsList =
-    filesInfo &&
-    filesInfo
-      .filter((list) => audioFormats.includes(list.type))
-      .map((item, i) => (
-        <ListItem key={item.name} onClick={(e) => playMe(e, item)}>
-          <span>{`${i + 1}. `}</span>
-          {item.name}
-        </ListItem>
-      ));
+  const videosList = useMemo(
+    () =>
+      files &&
+      files
+        .filter((list) => videoFormats.includes(list.type))
+        .map((item, i) => (
+          <ListItem
+            key={item.name}
+            style={{
+              color: itemClicked.id === item.id ? "rgb(62, 57, 36)" : "",
+              backgroundColor:
+                itemClicked.id === item.id ? "rgb(252, 228, 148)" : "",
+            }}
+            onClick={(e) => playMe(e, item)}
+          >
+            <span>{`${i + 1}. `}</span>
+            {item.name}
+            <button
+              style={{
+                display: "inline-block",
+                marginLeft: "30px",
+                background: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                verticalAlign: "middle",
+                borderColor: "rgb(252, 228, 148)",
+              }}
+            >
+              <AddToPlaylistIcon
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openModal();
+                  dispatch(setModalStatus(true));
+                  dispatch(setItemClicked(item));
+                }}
+                fill={
+                  itemClicked.id === item.id
+                    ? "rgb(62, 57, 36)"
+                    : "rgb(252, 228, 148)"
+                }
+              />
+            </button>
+          </ListItem>
+        )),
+    [files.length, itemClicked]
+  );
+
+  // console.log("item clicked is", itemClicked);
+  // console.log("item clicked is", files);
+
+  const musicsList = useMemo(
+    () =>
+      files &&
+      files
+        .filter((list) => audioFormats.includes(list.type))
+        .map((item, i) => (
+          <ListItem
+            style={{
+              color: itemClicked.id === item.id ? "rgb(62, 57, 36)" : "",
+              backgroundColor:
+                itemClicked.id === item.id ? "rgb(252, 228, 148)" : "",
+            }}
+            key={item.name}
+            onClick={(e) => playMe(e, item)}
+          >
+            <span>{`${i + 1}. `}</span>
+            {item.name}
+            <button
+              style={{
+                display: "inline-block",
+                marginLeft: "30px",
+                background: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                verticalAlign: "middle",
+                borderColor: "rgb(252, 228, 148)",
+              }}
+            >
+              <AddToPlaylistIcon
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openModal();
+                  dispatch(setModalStatus(true));
+                  dispatch(setItemClicked(item));
+                }}
+                fill={
+                  itemClicked.id === item.id
+                    ? "rgb(62, 57, 36)"
+                    : "rgb(252, 228, 148)"
+                }
+              />
+            </button>
+          </ListItem>
+        )),
+    [files.length, itemClicked]
+  );
+
+  const ModalOveray = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        zIndex: 10,
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          fontFamily: "cursive",
+          fontSize: "1.5rem",
+          // width: "100%",
+          weight: 500,
+          backgroundColor: "rgb(252, 228, 148)",
+          color: "rgb(51, 45, 25)",
+          padding: 20,
+          boxShadow:
+            "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+        }}
+      >
+        <fieldset>
+          <legend
+            style={{
+              fontWeight: "bold",
+            }}
+          >
+            Make your choice
+          </legend>
+          <form
+            style={{
+              textAlign: "left",
+            }}
+          >
+            <div>
+              <label>Add to existing playlist</label>
+              <br />
+              <select
+                onChange={(e) => (modalRef.current = e.target.value)}
+                style={{
+                  height: "40px",
+                  width: "200px",
+                  backgroundColor: "rgb(254, 249, 228)",
+                  color: "rgb(52, 43, 12)",
+                  marginRight: "50px",
+                }}
+              >
+                <option value={null}>Availabe playlists</option>
+                {playlist.length &&
+                  playlist.map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+              </select>
+              <PlayButton onClick={handleAddToPlaylist}>Add</PlayButton>
+            </div>
+            <div style={{ marginTop: "16px" }}>
+              <label>Create new playlist and add</label>
+              <br />
+              <input
+                className="play-button"
+                style={{
+                  borderRadius: "4px",
+                  display: "inline-block",
+                  color: "rgb(52, 43, 12)",
+                  fontSize: "1rem",
+                  width: "100%",
+                  padding: "4px",
+                  paddingLeft: "8px",
+                  paddingRight: "95px",
+                  maxWidth: "1080px",
+                  minHeight: "40px",
+                  backgroundColor: "rgb(254, 249, 228)",
+                }}
+                placeholder="Enter name for new playlist"
+                onChange={(e) => (modalRef.current = e.target.value)}
+              />
+              <PlayButton
+                onClick={handleAddToPlaylist}
+                style={{ marginLeft: "-90px" }}
+              >
+                Add to new
+              </PlayButton>
+            </div>
+          </form>
+        </fieldset>
+      </div>
+    </div>
+  );
 
   const upload = (
     <UploadButton>
@@ -230,6 +402,7 @@ function Player() {
       />
     </UploadButton>
   );
+
   const playOnlineUrl = (
     <div
       style={{
@@ -269,17 +442,57 @@ function Player() {
     </div>
   );
 
+  const Playlists = () => (
+    <div
+      className="modal-outermost-wrapper"
+      style={{
+        backgroundColor: "rgb(62, 57, 36)",
+      }}
+    >
+      <div style={{ width: "100%" }}>
+        <div
+          style={{
+            color: "rgb(252, 228, 148)",
+            fontSize: "1.5rem",
+            fontWeight: "bolder",
+            paddingTop: "4px",
+            textAlign: "center",
+          }}
+        >
+          My Playlists
+        </div>
+        <ul style={{ padding: 0 }}>
+          <Container>
+            <Section>
+              <InnerSection>
+                <AccordionContainer>
+                  <AccordionInner>
+                    <AccordionItems
+                      accordionContent={playlist}
+                      refs={refs}
+                      currentAccordion={currentAccordion}
+                      setCurrentAccordion={setCurrentAccordion}
+                      setBodyHeight={setBodyHeight}
+                      bodyHeight={bodyHeight}
+                    />
+                  </AccordionInner>
+                </AccordionContainer>
+              </InnerSection>
+            </Section>
+          </Container>
+        </ul>
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
+    <div className="smart-player-top-wrapper">
       <div
         className="second-inner-wrapper"
         style={{
           width: "100%",
           maxWidth: "1080px",
           backgroundColor: "rgb(62, 57, 36)",
-          borderRadius: "4px",
-          boxShadow:
-            "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
         }}
       >
         <div
@@ -341,7 +554,14 @@ function Player() {
             <ControlButton onClick={(e) => handleNext(e, -1)}>
               Prev
             </ControlButton>
-            <ControlButton className="control-button" onClick={handleLoop}>
+            <ControlButton
+              className="loop-button"
+              style={{
+                color: loop ? "rgb(62, 57, 36)" : "",
+                backgroundColor: loop ? "rgb(252, 228, 148)" : "",
+              }}
+              onClick={handleLoop}
+            >
               loop
             </ControlButton>
             <ControlButton onClick={(e) => handleNext(e, 1)}>
@@ -360,6 +580,7 @@ function Player() {
             loop={loop}
           />
         </div>
+
         <div
           style={{
             backgroundColor: "rgb(51, 45, 25)",
@@ -394,61 +615,25 @@ function Player() {
           </STabs>
         </div>
       </div>
-      <div
+      <Playlists />
+      <Modal
+        isOpen={modalStatus}
+        onRequestClose={closeModal}
         style={{
-          backgroundColor: "rgb(62, 57, 36)",
-          borderRadius: "4px",
-          marginLeft: "4px",
-          boxShadow:
-            "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+          content: {
+            background: "rgb(52, 43, 12)",
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+          },
         }}
+        contentLabel="Add to playlist Modal"
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-start",
-            flexDirection: "column",
-            alignContent: "center",
-            backgroundColor: "rgb(51, 45, 25)",
-            borderRadius: "4px",
-            padding: "8px 8px",
-            paddingBottom: "16px",
-            margin: "20px",
-          }}
-        >
-          <div
-            style={{
-              color: "rgb(252, 228, 148)",
-              fontSize: "1.5rem",
-              fontWeight: "bolder",
-              paddingLeft: "4px",
-              paddingRight: "4px",
-            }}
-          >
-            My Playlists
-          </div>
-          <ul style={{ padding: 0 }}>
-            <Container>
-              <Section>
-                <InnerSection>
-                  <AccordionContainer>
-                    <AccordionInner>
-                      <AccordionItems
-                        accordionContent={sampleAccordionData}
-                        refs={refs}
-                        currentAccordion={currentAccordion}
-                        setCurrentAccordion={setCurrentAccordion}
-                        setBodyHeight={setBodyHeight}
-                        bodyHeight={bodyHeight}
-                      />
-                    </AccordionInner>
-                  </AccordionContainer>
-                </InnerSection>
-              </Section>
-            </Container>
-          </ul>
-        </div>
-      </div>
+        <ModalOveray />
+      </Modal>
     </div>
   );
 }

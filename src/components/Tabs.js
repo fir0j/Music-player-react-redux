@@ -28,7 +28,7 @@ const STab = styled(Tab)`
   color: white;
 
   &.is-selected {
-    z-index: 10;
+    // z-index: 10;
     background: rgba(0, 0, 0, 0.4);
   }
 

@@ -19,7 +19,7 @@ const UploadButton = styled.button`
 
 const ControlButton = styled.button`
   background: none;
-  border: 1px solid rgb(252, 228, 148);
+  border-color: rgb(252, 228, 148);
   color: rgb(252, 228, 148);
   font-size: 1.5rem;
   border-radius: 4px;
