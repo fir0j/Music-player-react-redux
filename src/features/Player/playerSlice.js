@@ -8,7 +8,8 @@ const initialState = {
   loop: false,
   playlist: [],
   modalStatus: false,
-  itemClicked: null,
+  itemClicked: {},
+  activePlaylist: {},
 };
 
 export const playerSlice = createSlice({
@@ -67,11 +68,23 @@ export const playerSlice = createSlice({
         list: [action.payload.id],
       });
     },
+    removeFromPlaylist: (state, action) => {
+      state.playlist.forEach((el) => {
+        if (el.name === action.payload.name) {
+          // pop item.id from the list
+          let newList = el.list.filter((item) => item.id !== action.payload.id);
+          state.playlist = { ...state.playlist, list: newList };
+        }
+      });
+    },
     setModalStatus: (state, action) => {
       state.modalStatus = action.payload;
     },
     setItemClicked: (state, action) => {
       state.itemClicked = action.payload;
+    },
+    setActivePlaylist: (state, action) => {
+      state.activePlaylist = action.payload;
     },
   },
 });
@@ -89,6 +102,7 @@ export const {
   setPlaylist,
   setModalStatus,
   setItemClicked,
+  setActivePlaylist,
 } = playerSlice.actions;
 
 // exporting our callbacks for useSelector, is used to access redux store from anywhere in app
@@ -101,5 +115,6 @@ export const selectLoop = (state) => state.player.loop;
 export const selectPlaylist = (state) => state.player.playlist;
 export const selectModalStatus = (state) => state.player.modalStatus;
 export const selectItemClicked = (state) => state.player.itemClicked;
+export const selectActivePlaylist = (state) => state.player.activePlaylist;
 
 export default playerSlice.reducer;

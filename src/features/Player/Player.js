@@ -11,6 +11,7 @@ import {
   selectPlaylist,
   selectModalStatus,
   selectItemClicked,
+  selectActivePlaylist,
   setPlaying,
   setUrl,
   setTrackIndex,
@@ -20,6 +21,7 @@ import {
   setPlaylist,
   setModalStatus,
   setItemClicked,
+  setActivePlaylist,
 } from "./playerSlice";
 import { STabs, STabList, STab, STabPanel } from "../../components/Tabs";
 import {
@@ -43,6 +45,7 @@ import {
 } from "../../components/Accordion";
 // import AddToPlaylistIcon from "../Player/icons/add-playlist.svg";
 import { ReactComponent as AddToPlaylistIcon } from "../Player/icons/add-playlist.svg";
+import { ReactComponent as RemoveFromPlaylistIcon } from "../Player/icons/remove-playlist.svg";
 import Modal from "react-modal";
 Modal.setAppElement("#root");
 
@@ -56,6 +59,7 @@ function Player() {
   const playlist = useSelector(selectPlaylist);
   const modalStatus = useSelector(selectModalStatus);
   const itemClicked = useSelector(selectItemClicked);
+  const activePlaylist = useSelector(selectActivePlaylist);
   const dispatch = useDispatch();
   const urlRef = useRef("");
   const modalRef = useRef("");
@@ -80,7 +84,7 @@ function Player() {
 
   const refs = [item0, item1, item2, item3, item4, item5];
   // Accordion
-
+  console.log("activeplaylist", activePlaylist);
   const AccordionItems = ({
     accordionContent,
     refs,
@@ -111,8 +115,36 @@ function Player() {
                 item.list.includes(file.id) && (
                   <ListItem
                     style={{ marginTop: "8px" }}
-                    onClick={(e) => playMe(e, file)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playMe(e, file);
+                    }}
                   >
+                    <button
+                      style={{
+                        display: "inline-block",
+                        // marginLeft: "30px",
+                        marginRight: "8px",
+                        background: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        verticalAlign: "middle",
+                        borderColor: "rgb(252, 228, 148)",
+                      }}
+                    >
+                      <RemoveFromPlaylistIcon
+                        onClick={(e) => {
+                          console.log("active item", item);
+                          e.stopPropagation();
+                          handleRemoveFromPlaylist(item);
+                        }}
+                        fill={
+                          itemClicked.id === item.id
+                            ? "rgb(62, 57, 36)"
+                            : "rgb(252, 228, 148)"
+                        }
+                      />
+                    </button>
                     {file.name}
                   </ListItem>
                 )
@@ -170,6 +202,7 @@ function Player() {
     dispatch(setPlaying(false));
     dispatch(setUrl(item));
     dispatch(setPlaying(true));
+    dispatch(setActivePlaylist({}));
   };
 
   const handlePlayUrl = (e) => {
@@ -184,6 +217,12 @@ function Player() {
     // saving memory at expense of compute and time.
     let playlistItem = { name: modalRef.current, id: itemClicked.id };
     dispatch(setPlaylist(playlistItem));
+    dispatch(setModalStatus(false));
+  };
+
+  const handleRemoveFromPlaylist = (item) => {
+    dispatch(setActivePlaylist(item));
+    //
   };
 
   let audioFormats = ["audio/mpeg"];
@@ -223,6 +262,7 @@ function Player() {
                   openModal();
                   dispatch(setModalStatus(true));
                   dispatch(setItemClicked(item));
+                  dispatch(setActivePlaylist({}));
                 }}
                 fill={
                   itemClicked.id === item.id
@@ -273,6 +313,7 @@ function Player() {
                   openModal();
                   dispatch(setModalStatus(true));
                   dispatch(setItemClicked(item));
+                  dispatch(setActivePlaylist({}));
                 }}
                 fill={
                   itemClicked.id === item.id
@@ -442,48 +483,49 @@ function Player() {
     </div>
   );
 
-  const Playlists = () => (
-    <div
-      className="modal-outermost-wrapper"
-      style={{
-        backgroundColor: "rgb(62, 57, 36)",
-      }}
-    >
-      <div style={{ width: "100%" }}>
-        <div
-          style={{
-            color: "rgb(252, 228, 148)",
-            fontSize: "1.5rem",
-            fontWeight: "bolder",
-            paddingTop: "4px",
-            textAlign: "center",
-          }}
-        >
-          My Playlists
+  const Playlists = () =>
+    playlist.length > 0 && (
+      <div
+        className="modal-outermost-wrapper"
+        style={{
+          backgroundColor: "rgb(62, 57, 36)",
+        }}
+      >
+        <div style={{ width: "100%" }}>
+          <div
+            style={{
+              color: "rgb(252, 228, 148)",
+              fontSize: "1.5rem",
+              fontWeight: "bolder",
+              paddingTop: "4px",
+              textAlign: "center",
+            }}
+          >
+            My Playlists
+          </div>
+          <ul style={{ padding: 0 }}>
+            <Container>
+              <Section>
+                <InnerSection>
+                  <AccordionContainer>
+                    <AccordionInner>
+                      <AccordionItems
+                        accordionContent={playlist}
+                        refs={refs}
+                        currentAccordion={currentAccordion}
+                        setCurrentAccordion={setCurrentAccordion}
+                        setBodyHeight={setBodyHeight}
+                        bodyHeight={bodyHeight}
+                      />
+                    </AccordionInner>
+                  </AccordionContainer>
+                </InnerSection>
+              </Section>
+            </Container>
+          </ul>
         </div>
-        <ul style={{ padding: 0 }}>
-          <Container>
-            <Section>
-              <InnerSection>
-                <AccordionContainer>
-                  <AccordionInner>
-                    <AccordionItems
-                      accordionContent={playlist}
-                      refs={refs}
-                      currentAccordion={currentAccordion}
-                      setCurrentAccordion={setCurrentAccordion}
-                      setBodyHeight={setBodyHeight}
-                      bodyHeight={bodyHeight}
-                    />
-                  </AccordionInner>
-                </AccordionContainer>
-              </InnerSection>
-            </Section>
-          </Container>
-        </ul>
       </div>
-    </div>
-  );
+    );
 
   return (
     <div className="smart-player-top-wrapper">
