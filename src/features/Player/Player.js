@@ -63,8 +63,8 @@ function Player() {
   const dispatch = useDispatch();
   const urlRef = useRef("");
   const modalRef = useRef("");
-  const audioFormats = ["audio/mpeg"];
-  const videoFormats = ["video/mp4"];
+  const audioFormats = ["audio/mpeg", "audio/mp3"];
+  const videoFormats = ["video/mp4", "video/mkv", "video/x-matroska"];
 
   function openModal() {
     dispatch(setModalStatus(true));
@@ -100,6 +100,7 @@ function Player() {
   };
 
   const handleMediaInput = (event) => {
+    console.log(event.target.files);
     if (event.target.files.length === 0) return;
 
     let files = Array.from(event.target.files).map((item, i) => {
@@ -143,7 +144,6 @@ function Player() {
     console.log(playlistName, playlistItemId);
     dispatch(removeFromPlaylist({ playlistName, playlistItemId }));
   };
-  console.log("playlist", playlist);
 
   // accordion start
   const [currentAccordion, setCurrentAccordion] = useState(0);
@@ -284,7 +284,7 @@ function Player() {
             </button>
           </ListItem>
         )),
-    [files.length, itemClicked]
+    [files, files.length, itemClicked]
   );
 
   // console.log("item clicked is", itemClicked);
@@ -335,7 +335,7 @@ function Player() {
             </button>
           </ListItem>
         )),
-    [files.length, itemClicked]
+    [files, files.length, itemClicked]
   );
 
   const ModalOveray = () => (
