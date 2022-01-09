@@ -6,23 +6,13 @@
   --text: "rgb(201, 201, 193)";
   --black: "rgb(51, 45, 25)";
 }
+
+/* Global Reset style */
 * {
   box-sizing: border-box;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-float infinite 3s ease-in-out;
-  }
-}
 
-@keyframes App-logo-float {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+body {
+  margin: 0;
+  padding: 0;
 }

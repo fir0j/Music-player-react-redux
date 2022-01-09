@@ -4,8 +4,8 @@ const UploadButton = styled.button`
   display: inline-block;
   color: smokewhite;
   font-size: 2em;
-  // margin: $({props}=> props.margin || 2em);
-  // padding: $({props}) => props.padding || 0.5em 2em;
+  margin: $({props}=> props.margin || 2em);
+  padding: $({props}) => props.padding || 0.5em 2em;
   border: 4px solid rgb(62, 57, 36);
   border-radius: 50%;
   position: absolute;
@@ -14,6 +14,7 @@ const UploadButton = styled.button`
   background-color: rgb(252, 228, 148);
   height: 50px;
   width: 50px;
+  outline: 1px solid rgb(252, 228, 148);
 `;
 
 const ControlButton = styled.button`
